@@ -1,0 +1,76 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using Reign;
+
+public class TestUInput : MonoBehaviour
+{
+	private KeyCode[] keyCodes;
+	private string lable;
+
+	private void Start()
+	{
+		keyCodes = (KeyCode[])System.Enum.GetValues(typeof(KeyCode));
+		lable = string.Empty;
+		SDLInput.DevicesChangedCallback += UInput_DevicesChangedCallback;
+	}
+
+	private void OnDestroy()
+	{
+		SDLInput.DevicesChangedCallback -= UInput_DevicesChangedCallback;
+	}
+
+	private void UInput_DevicesChangedCallback()
+	{
+		lable = "Devices Changed";
+	}
+
+	private void Update()
+	{
+		// mouse
+		if (SDLInput.GetMouseButtonDown(0)) lable = "Mouse Left Click";
+		if (SDLInput.GetMouseButtonDown(1)) lable = "Mouse Right Click";
+		if (SDLInput.GetMouseButtonDown(2)) lable = "Mouse Middle Click";
+
+		// keyboard
+		foreach (var keyCode in keyCodes)
+		{
+			if (SDLInput.GetKeyDown(keyCode)) lable = "Key: " + keyCode.ToString();
+		}
+
+		// controller
+		foreach (var gamepad in SDLInput.gamepads)
+		{
+			if (gamepad.primary1.down) lable = "Gamepad: Button0";
+			if (gamepad.primary2.down) lable = "Gamepad: Button1";
+			if (gamepad.primary3.down) lable = "Gamepad: Button2";
+			if (gamepad.primary4.down) lable = "Gamepad: Button3";
+
+			if (gamepad.dpadUp.down) lable = "Gamepad: DPadUp";
+			if (gamepad.dpadDown.down) lable = "Gamepad: DPadDown";
+			if (gamepad.dpadLeft.down) lable = "Gamepad: DPadLeft";
+			if (gamepad.dpadRight.down) lable = "Gamepad: DPadRight";
+
+			if (gamepad.menu.down) lable = "Gamepad: Menu";
+			if (gamepad.back.down) lable = "Gamepad: Back";
+
+			if (gamepad.bumperLeft.down) lable = "Gamepad: BumperLeft";
+			if (gamepad.bumperRight.down) lable = "Gamepad: BumperRight";
+
+			if (gamepad.triggerLeft.value != 0) lable = "Gamepad: TriggerLeft: " + gamepad.triggerLeft.value.ToString();
+			if (gamepad.triggerRight.value != 0) lable = "Gamepad: TriggerRight: " + gamepad.triggerRight.value.ToString();
+			gamepad.SetRumble(gamepad.triggerLeft.value, gamepad.triggerRight.value);
+
+			if (gamepad.joystickButtonLeft.down) lable = "Gamepad: JoystickButtonLeft";
+			if (gamepad.joystickButtonRight.down) lable = "Gamepad: JoystickButtonRight";
+
+			if (gamepad.joystickLeft.value.magnitude != 0) lable = "Gamepad: TriggerLeft: " + gamepad.joystickLeft.value.ToString();
+			if (gamepad.joystickRight.value.magnitude != 0) lable = "Gamepad: TriggerRight: " + gamepad.joystickRight.value.ToString();
+		}
+	}
+
+	private void OnGUI()
+	{
+		GUI.Label(new Rect(20, 20, 256, 32), lable);
+	}
+}
