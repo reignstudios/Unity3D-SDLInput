@@ -1280,6 +1280,7 @@ namespace Reign
             var data = Encoding.Default.GetBytes(value);
             ptr = (byte*)Marshal.AllocHGlobal(data.Length + 1);
             Marshal.Copy(data, 0, (IntPtr)ptr, data.Length);
+            ptr[data.Length] = (byte)'\0';
         }
 
         public void Dispose()

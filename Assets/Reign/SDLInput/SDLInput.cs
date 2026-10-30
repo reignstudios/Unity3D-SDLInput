@@ -39,7 +39,7 @@ namespace Reign
         public delegate void DevicesChangedCallbackMethod();
         public static event DevicesChangedCallbackMethod DevicesChangedCallback;
         
-        public bool initAllowingBackgroundInput;
+        public bool initAllowingBackgroundInput, loadGamepadMappings = true;
         private bool isInit;
 
 		private void Start()
@@ -68,14 +68,18 @@ namespace Reign
             }
 
             // load mappings
-            string mappingPath = Path.Combine(Application.streamingAssetsPath, "SDL", "gamecontrollerdb.txt");
-            if (File.Exists(mappingPath))
+            if (loadGamepadMappings)
             {
-                Debug.Log("SDLInput: Loading gamecontrollerdb.txt");
-                using (var mappingPathString = new SDL_String(mappingPath))
+                string mappingPath = Path.Combine(Application.streamingAssetsPath, "SDL", "gamecontrollerdb.txt").Replace('/', Path.DirectorySeparatorChar);
+                if (File.Exists(mappingPath))
                 {
-                    int result = SDL3.SDL_AddGamepadMappingsFromFile(mappingPathString.ptr);
-                    if (result < 0) Debug.LogError("SDLInput: SDL_AddGamepadMappingsFromFile failed");
+                    Debug.Log("SDLInput: Loading gamecontrollerdb.txt");
+                    using (var mappingPathString = new SDL_String(mappingPath))
+                    {
+                        int result = SDL3.SDL_AddGamepadMappingsFromFile(mappingPathString.ptr);
+                        if (result < 0) Debug.LogError("SDLInput: SDL_AddGamepadMappingsFromFile failed");
+                        else Debug.Log("SDLInput: Mappings loaded: " + result.ToString());
+                    }
                 }
             }
 
