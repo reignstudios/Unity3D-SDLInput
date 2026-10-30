@@ -1244,6 +1244,13 @@ namespace Reign
         }
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SDL_GetVersion();
+
+        public static int SDL_VERSIONNUM_MAJOR(int version) => ((version) / 1000000);
+        public static int SDL_VERSIONNUM_MINOR(int version) => (((version) / 1000) % 1000);
+        public static int SDL_VERSIONNUM_MICRO(int version) => ((version) % 1000);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SDL_SetHint(byte* name, byte* value);
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]

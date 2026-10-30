@@ -46,6 +46,11 @@ namespace Reign
 		{
             gamepads = new List<SDLGamepad>();
 
+            // get version
+            Debug.Log("SDL3Input: Initializing...");
+            int version = SDL3.SDL_GetVersion();
+            Debug.Log($"SDL3Input: Version: {SDL3.SDL_VERSIONNUM_MAJOR(version)}.{SDL3.SDL_VERSIONNUM_MINOR(version)}.{SDL3.SDL_VERSIONNUM_MICRO(version)}");
+
             // allow background input
             if (initAllowingBackgroundInput)
             {
@@ -81,6 +86,18 @@ namespace Reign
                         else Debug.Log("SDLInput: Mappings loaded: " + result.ToString());
                     }
                 }
+
+                mappingPath = Path.Combine(Application.streamingAssetsPath, "SDL", "gamecontrollerdb.local.txt").Replace('/', Path.DirectorySeparatorChar);
+                if (File.Exists(mappingPath))
+                {
+                    Debug.Log("SDLInput: Loading gamecontrollerdb.local.txt");
+                    using (var mappingPathString = new SDL_String(mappingPath))
+                    {
+                        int result = SDL3.SDL_AddGamepadMappingsFromFile(mappingPathString.ptr);
+                        if (result < 0) Debug.LogError("SDLInput: SDL_AddGamepadMappingsFromFile failed");
+                        else Debug.Log("SDLInput: Mappings loaded: " + result.ToString());
+                    }
+                }
             }
 
             isInit = true;
@@ -89,6 +106,7 @@ namespace Reign
 
         private void OnDestroy()
         {
+            Debug.Log("SDL3Input: shutdown");
             SDL3.SDL_Quit();
         }
 
