@@ -1,16 +1,4 @@
-//#undef ENABLE_INPUT_SYSTEM
-
-#if UINPUT_DISABLE_NEW
-#undef ENABLE_INPUT_SYSTEM
-#endif
-
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem.Controls;
-#endif
 
 namespace Reign
 {
@@ -20,32 +8,17 @@ namespace Reign
 		public static float tolerance = 0.1f;
 		public float value;
 
-		#if ENABLE_INPUT_SYSTEM
-		public ButtonControl control;
-
-		public SDLTrigger(ButtonControl control, string name)
-		{
-			this.control = control;
-			this.name = name;
-			value = 0;
-		}
-
-		internal void Update()
-		{
-			if (control != null) Update(control.value);
-		}
-		#else
-		public readonly string mapName;
+		public readonly SDL3.SDL_GamepadAxis axis;
 		public readonly float axisOffset, axisDiv, delayUntilNotEqual;
 		private bool hasStarted;
 
-		public SDLTrigger(string mapName, string name)
-		: this(mapName, name, 0, 1, 0)
+		public SDLTrigger(SDL3.SDL_GamepadAxis axis, string name)
+		: this(axis, name, 0, 1, 0)
 		{}
 
-		public SDLTrigger(string mapName, string name, float axisOffset, float axisDiv, float delayUntilNotEqual)
+		public SDLTrigger(SDL3.SDL_GamepadAxis axis, string name, float axisOffset, float axisDiv, float delayUntilNotEqual)
 		{
-			this.mapName = mapName;
+			this.axis = axis;
 			this.name = name;
 			this.axisOffset = axisOffset;
 			this.axisDiv = axisDiv;
@@ -54,18 +27,16 @@ namespace Reign
 			value = 0;
 		}
 
-		internal void Update()
+		internal void Update(float value)
 		{
-			if (mapName != null)
+			if (axis != SDL3.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_INVALID)
 			{
-				float value = Input.GetAxisRaw(mapName);
 				if (value != delayUntilNotEqual) hasStarted = true;
-				if (hasStarted) Update((value + axisOffset) / axisDiv);
+				if (hasStarted) UpdateInternal((value + axisOffset) / axisDiv);
 			}
 		}
-		#endif
 
-		private void Update(float newValue)
+		private void UpdateInternal(float newValue)
 		{
 			if (newValue <= tolerance) newValue = 0;
 			value = newValue;

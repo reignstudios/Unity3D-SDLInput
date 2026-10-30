@@ -1,16 +1,4 @@
-//#undef ENABLE_INPUT_SYSTEM
-
-#if UINPUT_DISABLE_NEW
-#undef ENABLE_INPUT_SYSTEM
-#endif
-
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem.Controls;
-#endif
 
 namespace Reign
 {
@@ -19,55 +7,39 @@ namespace Reign
 		public readonly string name;
 		public bool on, down, up;
 
-		#if ENABLE_INPUT_SYSTEM
-		public readonly ButtonControl control;
-
-		public SDLButton(ButtonControl control, string name)
-		{
-			this.control = control;
-			this.name = name;
-			on = false;
-			down = false;
-			up = false;
-		}
-
-		internal void Update()
-		{
-			if (control != null) UpdateInternal(control.isPressed);
-		}
-		#else
-		public readonly string mapName;
+		public readonly SDL3.SDL_GamepadButton button;
+		public readonly SDL3.SDL_GamepadAxis axis;
 		public readonly bool useAxis, negAxis;
 
-		public SDLButton(string mapName, string name)
-		: this(mapName, name, false, false)
+		public SDLButton(SDL3.SDL_GamepadButton button, string name)
+		: this(button, name, false, false, SDL3.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_INVALID)
 		{}
 
-		public SDLButton(string mapName, string name, bool useAxis, bool negAxis)
+		public SDLButton(SDL3.SDL_GamepadButton button, string name, bool useAxis, bool negAxis, SDL3.SDL_GamepadAxis axis)
 		{
-			this.mapName = mapName;
+			this.button = button;
 			this.name = name;
 			this.useAxis = useAxis;
 			this.negAxis = negAxis;
+			this.axis = axis;
 			on = false;
 			down = false;
 			up = false;
 		}
 
-		internal void Update()
+		internal void Update(bool buttonOn, float axisValue)
 		{
-			if (mapName == null) return;
+			if (button == SDL3.SDL_GamepadButton.SDL_GAMEPAD_BUTTON_INVALID) return;
 			if (useAxis)
 			{
-				if (negAxis) UpdateInternal(Input.GetAxisRaw(mapName) < -.5f);
-				else UpdateInternal(Input.GetAxisRaw(mapName) > .5f);
+				if (negAxis) UpdateInternal(axisValue < -.5f);
+				else UpdateInternal(axisValue > .5f);
 			}
 			else
 			{
-				UpdateInternal(Input.GetButton(mapName));
+				UpdateInternal(buttonOn);
 			}
 		}
-		#endif
 
 		private void UpdateInternal(bool pressed)
 		{

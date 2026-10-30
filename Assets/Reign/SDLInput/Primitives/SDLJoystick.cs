@@ -1,16 +1,4 @@
-//#undef ENABLE_INPUT_SYSTEM
-
-#if UINPUT_DISABLE_NEW
-#undef ENABLE_INPUT_SYSTEM
-#endif
-
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-
-#if ENABLE_INPUT_SYSTEM
-using UnityEngine.InputSystem.Controls;
-#endif
 
 namespace Reign
 {
@@ -19,54 +7,48 @@ namespace Reign
 		public readonly string name;
 		public static float tolerance = 0.1f;
 		public Vector2 value;
+		private float valueX, valueY;
 
-		#if ENABLE_INPUT_SYSTEM
-		public readonly StickControl control;
-
-		public SDLJoystick(StickControl control, string name)
-		{
-			this.control = control;
-			this.name = name;
-			value = Vector2.zero;
-		}
-
-		internal void Update()
-		{
-			if (control != null) Update(control.value);
-		}
-		#else
-		public readonly string mapName_AxisX, mapName_AxisY;
+		public readonly SDL3.SDL_GamepadAxis axisX, axisY;
 		public readonly bool invertX, invertY;
 
-		public SDLJoystick(string mapName_AxisX, string mapName_AxisY, string name)
-		: this(mapName_AxisX, mapName_AxisY, name, false, true)
+		public SDLJoystick(SDL3.SDL_GamepadAxis axisX, SDL3.SDL_GamepadAxis axisY, string name)
+		: this(axisX, axisY, name, false, true)
 		{}
 
-		public SDLJoystick(string mapName_AxisX, string mapName_AxisY, string name, bool invertX, bool invertY)
+		public SDLJoystick(SDL3.SDL_GamepadAxis axisX, SDL3.SDL_GamepadAxis axisY, string name, bool invertX, bool invertY)
 		{
-			this.mapName_AxisX = mapName_AxisX;
-			this.mapName_AxisY = mapName_AxisY;
+			this.axisX = axisX;
+			this.axisY = axisY;
 			this.name = name;
 			this.invertX = invertX;
 			this.invertY = invertY;
 			value = Vector2.zero;
+			valueX = 0;
+			valueY = 0;
 		}
 
-		internal void Update()
+		internal void UpdateX(float valueX)
 		{
-			if (mapName_AxisX != null && mapName_AxisY != null)
+			if (axisX != SDL3.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_INVALID)
 			{
-				float valueX = Input.GetAxisRaw(mapName_AxisX);
-				float valueY = Input.GetAxisRaw(mapName_AxisY);
 				if (invertX) valueX = -valueX;
-				if (invertY) valueY = -valueY;
-				Update(new Vector2(valueX, valueY));
+				this.valueX = valueX;
 			}
 		}
-		#endif
 
-		private void Update(Vector2 newValue)
+		internal void UpdateY(float valueY)
 		{
+			if (axisY != SDL3.SDL_GamepadAxis.SDL_GAMEPAD_AXIS_INVALID)
+			{
+				if (invertX) valueY = -valueY;
+				this.valueY = valueY;
+			}
+		}
+
+		internal void UpdateFinish()
+		{
+			var newValue = new Vector2(valueX, valueY);
 			if (newValue.magnitude <= tolerance) newValue = Vector2.zero;
 			value = newValue;
 		}

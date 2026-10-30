@@ -1,7 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using UnityEngine;
 
 using SDL_InitFlags = System.UInt32;
 using BOOL = System.Byte;
@@ -27,10 +26,11 @@ using SDL_TouchID = System.UInt64;
 using SDL_FingerID = System.UInt64;
 using SDL_PenID = System.UInt32;
 using SDL_PenInputFlags = System.UInt32;
+using SDL_Gamepad = System.IntPtr;
 
 namespace Reign
 {
-	unsafe static class SDL3
+	public unsafe static class SDL3
     {
         private const string lib = "SDL3.dll";
         public const uint SDL_INIT_JOYSTICK = 0x00000200u;
@@ -1199,6 +1199,50 @@ namespace Reign
             [FieldOffset(0)] public fixed Uint8 padding[128];
         }
 
+        public enum SDL_GamepadButton
+        {
+            SDL_GAMEPAD_BUTTON_INVALID = -1,
+            SDL_GAMEPAD_BUTTON_SOUTH,           /**< Bottom face button (e.g. Xbox A button) */
+            SDL_GAMEPAD_BUTTON_EAST,            /**< Right face button (e.g. Xbox B button) */
+            SDL_GAMEPAD_BUTTON_WEST,            /**< Left face button (e.g. Xbox X button) */
+            SDL_GAMEPAD_BUTTON_NORTH,           /**< Top face button (e.g. Xbox Y button) */
+            SDL_GAMEPAD_BUTTON_BACK,
+            SDL_GAMEPAD_BUTTON_GUIDE,
+            SDL_GAMEPAD_BUTTON_START,
+            SDL_GAMEPAD_BUTTON_LEFT_STICK,
+            SDL_GAMEPAD_BUTTON_RIGHT_STICK,
+            SDL_GAMEPAD_BUTTON_LEFT_SHOULDER,
+            SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER,
+            SDL_GAMEPAD_BUTTON_DPAD_UP,
+            SDL_GAMEPAD_BUTTON_DPAD_DOWN,
+            SDL_GAMEPAD_BUTTON_DPAD_LEFT,
+            SDL_GAMEPAD_BUTTON_DPAD_RIGHT,
+            SDL_GAMEPAD_BUTTON_MISC1,           /**< Additional button (e.g. Xbox Series X share button, PS5 microphone button, Nintendo Switch Pro capture button, Steam Controller QAM button, Amazon Luna microphone button, Google Stadia capture button) */
+            SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1,   /**< Upper or primary paddle, under your right hand (e.g. Xbox Elite paddle P1, DualSense Edge RB button, Right Joy-Con SR button, Steam Controller R4 button) */
+            SDL_GAMEPAD_BUTTON_LEFT_PADDLE1,    /**< Upper or primary paddle, under your left hand (e.g. Xbox Elite paddle P3, DualSense Edge LB button, Left Joy-Con SL button, Steam Controller L4 button) */
+            SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2,   /**< Lower or secondary paddle, under your right hand (e.g. Xbox Elite paddle P2, DualSense Edge right Fn button, Right Joy-Con SL button, Steam Controller R5 button) */
+            SDL_GAMEPAD_BUTTON_LEFT_PADDLE2,    /**< Lower or secondary paddle, under your left hand (e.g. Xbox Elite paddle P4, DualSense Edge left Fn button, Left Joy-Con SR button, Steam Controller L5 button) */
+            SDL_GAMEPAD_BUTTON_TOUCHPAD,        /**< PS4/PS5 touchpad button */
+            SDL_GAMEPAD_BUTTON_MISC2,           /**< Additional button */
+            SDL_GAMEPAD_BUTTON_MISC3,           /**< Additional button (e.g. Nintendo GameCube left trigger click) */
+            SDL_GAMEPAD_BUTTON_MISC4,           /**< Additional button (e.g. Nintendo GameCube right trigger click) */
+            SDL_GAMEPAD_BUTTON_MISC5,           /**< Additional button */
+            SDL_GAMEPAD_BUTTON_MISC6,           /**< Additional button */
+            SDL_GAMEPAD_BUTTON_COUNT
+        }
+
+        public enum SDL_GamepadAxis
+        {
+            SDL_GAMEPAD_AXIS_INVALID = -1,
+            SDL_GAMEPAD_AXIS_LEFTX,
+            SDL_GAMEPAD_AXIS_LEFTY,
+            SDL_GAMEPAD_AXIS_RIGHTX,
+            SDL_GAMEPAD_AXIS_RIGHTY,
+            SDL_GAMEPAD_AXIS_LEFT_TRIGGER,
+            SDL_GAMEPAD_AXIS_RIGHT_TRIGGER,
+            SDL_GAMEPAD_AXIS_COUNT
+        }
+
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SDL_SetHint(byte* name, byte* value);
 
@@ -1207,6 +1251,24 @@ namespace Reign
 
         [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
         public static extern int SDL_AddGamepadMappingsFromFile(byte *file);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SDL_Quit();
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern BOOL SDL_PollEvent(SDL_Event *e);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern SDL_Gamepad SDL_OpenGamepad(SDL_JoystickID instance_id);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern SDL_Gamepad SDL_GetGamepadFromID(SDL_JoystickID instance_id);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern byte* SDL_GetGamepadName(SDL_Gamepad gamepad);
+
+        [DllImport(lib, CallingConvention = CallingConvention.Cdecl)]
+        public static extern BOOL SDL_RumbleGamepad(SDL_Gamepad gamepad, Uint16 low_frequency_rumble, Uint16 high_frequency_rumble, Uint32 duration_ms);
     }
 
     unsafe struct SDL_String : IDisposable

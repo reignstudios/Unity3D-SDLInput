@@ -27,7 +27,7 @@ public class TestUInput : MonoBehaviour
 
 	private void Update()
 	{
-		// mouse
+		/*// mouse
 		if (SDLInput.GetMouseButtonDown(0)) lable = "Mouse Left Click";
 		if (SDLInput.GetMouseButtonDown(1)) lable = "Mouse Right Click";
 		if (SDLInput.GetMouseButtonDown(2)) lable = "Mouse Middle Click";
@@ -36,7 +36,7 @@ public class TestUInput : MonoBehaviour
 		foreach (var keyCode in keyCodes)
 		{
 			if (SDLInput.GetKeyDown(keyCode)) lable = "Key: " + keyCode.ToString();
-		}
+		}*/
 
 		// controller
 		foreach (var gamepad in SDLInput.gamepads)
