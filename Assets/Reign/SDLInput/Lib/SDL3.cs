@@ -4,36 +4,49 @@ using System.Text;
 using UnityEngine;
 
 using SDL_InitFlags = System.UInt32;
+using BOOL = System.Byte;
 using Uint8 = System.Byte;
 using Uint16 = System.UInt16;
 using Uint32 = System.UInt32;
 using Uint64 = System.UInt64;
+using Sint16 = System.Int16;
 using Sint32 = System.Int32;
 using Sint64 = System.Int64;
 using SDL_DisplayID = System.UInt32;
 using SDL_WindowID = System.UInt32;
 using SDL_KeyboardID = System.UInt32;
+using SDL_MouseID = System.UInt32;
 using SDL_Keycode = System.UInt32;
 using SDL_Keymod = System.UInt16;
+using SDL_MouseButtonFlags = System.UInt32;
+using SDL_JoystickID = System.UInt32;
+using SDL_AudioDeviceID = System.UInt32;
+using SDL_CameraID = System.UInt32;
+using SDL_SensorID = System.UInt32;
+using SDL_TouchID = System.UInt64;
+using SDL_FingerID = System.UInt64;
+using SDL_PenID = System.UInt32;
+using SDL_PenInputFlags = System.UInt32;
 
 namespace Reign
 {
 	unsafe static class SDL3
     {
         private const string lib = "SDL3.dll";
-        public const uint SDL_INIT_JOYSTICK = 0x00000200;
-        public const uint SDL_INIT_GAMEPAD = 0x00002000;
+        public const uint SDL_INIT_JOYSTICK = 0x00000200u;
+        public const uint SDL_INIT_GAMEPAD = 0x00002000u;
 
         public const string SDL_HINT_JOYSTICK_ALLOW_BACKGROUND_EVENTS = "SDL_JOYSTICK_ALLOW_BACKGROUND_EVENTS";
 
         [StructLayout(LayoutKind.Sequential)]
         public struct SDL_CommonEvent
         {
-            public Uint32 type;
-            public Uint32 timestamp;   /**< In milliseconds, populated using SDL_GetTicks() */
+            public Uint32 type;        /**< Event type, shared with all events, Uint32 to cover user events which are not in the SDL_EventType enumeration */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
         }
 
-        public enum SDL_EventType : int
+        public enum SDL_EventType
         {
             SDL_EVENT_FIRST     = 0,     /**< Unused (do not remove) */
 
@@ -103,7 +116,7 @@ namespace Reign
             SDL_EVENT_WINDOW_FOCUS_LOST,        /**< Window has lost keyboard focus */
             SDL_EVENT_WINDOW_CLOSE_REQUESTED,   /**< The window manager requests that the window be closed */
             SDL_EVENT_WINDOW_HIT_TEST,          /**< Window had a hit test that wasn't SDL_HITTEST_NORMAL */
-            SDL_EVENT_WINDOW_ICCPROF_CHANGED,   /**< The window's ICC profile has changed */
+            SDL_EVENT_WINDOW_ICCPROF_CHANGED,   /**< The ICC profile of the window's display has changed */
             SDL_EVENT_WINDOW_DISPLAY_CHANGED,   /**< Window has been moved to display data1 */
             SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED, /**< Window display scale has been changed */
             SDL_EVENT_WINDOW_SAFE_AREA_CHANGED, /**< The window safe area has been changed */
@@ -115,9 +128,8 @@ namespace Reign
                                                      associated with the window. Otherwise, the handle has already been destroyed and all resources
                                                      associated with it are invalid */
             SDL_EVENT_WINDOW_HDR_STATE_CHANGED, /**< Window HDR properties have changed */
-            SDL_EVENT_WINDOW_SETTINGS_CHANGED,  /**< Window settings have changed (on visionOS) */
             SDL_EVENT_WINDOW_FIRST = SDL_EVENT_WINDOW_SHOWN,
-            SDL_EVENT_WINDOW_LAST = SDL_EVENT_WINDOW_SETTINGS_CHANGED,
+            SDL_EVENT_WINDOW_LAST = SDL_EVENT_WINDOW_HDR_STATE_CHANGED,
 
             /* Keyboard events */
             SDL_EVENT_KEY_DOWN        = 0x300, /**< Key pressed */
@@ -131,8 +143,6 @@ namespace Reign
             SDL_EVENT_TEXT_EDITING_CANDIDATES, /**< Keyboard text editing candidates */
             SDL_EVENT_SCREEN_KEYBOARD_SHOWN,   /**< The on-screen keyboard has been shown */
             SDL_EVENT_SCREEN_KEYBOARD_HIDDEN,  /**< The on-screen keyboard has been hidden */
-            SDL_EVENT_KEYBOARD_FIRST = SDL_EVENT_KEY_DOWN,
-            SDL_EVENT_KEYBOARD_LAST = SDL_EVENT_SCREEN_KEYBOARD_HIDDEN,
 
             /* Mouse events */
             SDL_EVENT_MOUSE_MOTION    = 0x400, /**< Mouse moved */
@@ -141,8 +151,6 @@ namespace Reign
             SDL_EVENT_MOUSE_WHEEL,             /**< Mouse wheel motion */
             SDL_EVENT_MOUSE_ADDED,             /**< A new mouse has been inserted into the system */
             SDL_EVENT_MOUSE_REMOVED,           /**< A mouse has been removed */
-            SDL_EVENT_MOUSE_FIRST = SDL_EVENT_MOUSE_MOTION,
-            SDL_EVENT_MOUSE_LAST = SDL_EVENT_MOUSE_REMOVED,
 
             /* Joystick events */
             SDL_EVENT_JOYSTICK_AXIS_MOTION  = 0x600, /**< Joystick axis motion */
@@ -154,8 +162,6 @@ namespace Reign
             SDL_EVENT_JOYSTICK_REMOVED,              /**< An opened joystick has been removed */
             SDL_EVENT_JOYSTICK_BATTERY_UPDATED,      /**< Joystick battery level change */
             SDL_EVENT_JOYSTICK_UPDATE_COMPLETE,      /**< Joystick update is complete */
-            SDL_EVENT_JOYSTICK_FIRST = SDL_EVENT_JOYSTICK_AXIS_MOTION,
-            SDL_EVENT_JOYSTICK_LAST = SDL_EVENT_JOYSTICK_UPDATE_COMPLETE,
 
             /* Gamepad events */
             SDL_EVENT_GAMEPAD_AXIS_MOTION  = 0x650, /**< Gamepad axis motion */
@@ -170,32 +176,22 @@ namespace Reign
             SDL_EVENT_GAMEPAD_SENSOR_UPDATE,        /**< Gamepad sensor was updated */
             SDL_EVENT_GAMEPAD_UPDATE_COMPLETE,      /**< Gamepad update is complete */
             SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED,  /**< Gamepad Steam handle has changed */
-            SDL_EVENT_GAMEPAD_CAPSENSE_TOUCH,       /**< Gamepad capsense was touched */
-            SDL_EVENT_GAMEPAD_CAPSENSE_RELEASE,     /**< Gamepad capsense was released */
-            SDL_EVENT_GAMEPAD_FIRST = SDL_EVENT_GAMEPAD_AXIS_MOTION,
-            SDL_EVENT_GAMEPAD_LAST = SDL_EVENT_GAMEPAD_CAPSENSE_RELEASE,
 
             /* Touch events */
             SDL_EVENT_FINGER_DOWN      = 0x700,
             SDL_EVENT_FINGER_UP,
             SDL_EVENT_FINGER_MOTION,
             SDL_EVENT_FINGER_CANCELED,
-            SDL_EVENT_FINGER_FIRST = SDL_EVENT_FINGER_DOWN,
-            SDL_EVENT_FINGER_LAST = SDL_EVENT_FINGER_CANCELED,
 
             /* Pinch events */
             SDL_EVENT_PINCH_BEGIN      = 0x710,     /**< Pinch gesture started */
             SDL_EVENT_PINCH_UPDATE,                 /**< Pinch gesture updated */
             SDL_EVENT_PINCH_END,                    /**< Pinch gesture ended */
-            SDL_EVENT_PINCH_FIRST = SDL_EVENT_PINCH_BEGIN,
-            SDL_EVENT_PINCH_LAST = SDL_EVENT_PINCH_END,
 
             /* 0x800, 0x801, and 0x802 were the Gesture events from SDL2. Do not reuse these values! sdl2-compat needs them! */
 
             /* Clipboard events */
             SDL_EVENT_CLIPBOARD_UPDATE = 0x900, /**< The clipboard changed */
-            SDL_EVENT_CLIPBOARD_FIRST = SDL_EVENT_CLIPBOARD_UPDATE,
-            SDL_EVENT_CLIPBOARD_LAST = SDL_EVENT_CLIPBOARD_UPDATE,
 
             /* Drag and drop events */
             SDL_EVENT_DROP_FILE        = 0x1000, /**< The system requests a file open */
@@ -203,20 +199,14 @@ namespace Reign
             SDL_EVENT_DROP_BEGIN,                /**< A new set of drops is beginning (NULL filename) */
             SDL_EVENT_DROP_COMPLETE,             /**< Current set of drops is now complete (NULL filename) */
             SDL_EVENT_DROP_POSITION,             /**< Position while moving over the window */
-            SDL_EVENT_DROP_FIRST = SDL_EVENT_DROP_FILE,
-            SDL_EVENT_DROP_LAST = SDL_EVENT_DROP_POSITION,
 
             /* Audio hotplug events */
             SDL_EVENT_AUDIO_DEVICE_ADDED = 0x1100,  /**< A new audio device is available */
             SDL_EVENT_AUDIO_DEVICE_REMOVED,         /**< An audio device has been removed. */
             SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED,  /**< An audio device's format has been changed by the system. */
-            SDL_EVENT_AUDIO_DEVICE_FIRST = SDL_EVENT_AUDIO_DEVICE_ADDED,
-            SDL_EVENT_AUDIO_DEVICE_LAST = SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED,
 
             /* Sensor events */
             SDL_EVENT_SENSOR_UPDATE = 0x1200,     /**< A sensor was updated */
-            SDL_EVENT_SENSOR_FIRST = SDL_EVENT_SENSOR_UPDATE,
-            SDL_EVENT_SENSOR_LAST = SDL_EVENT_SENSOR_UPDATE,
 
             /* Pressure-sensitive pen events */
             SDL_EVENT_PEN_PROXIMITY_IN = 0x1300,  /**< Pressure-sensitive pen has become available */
@@ -227,28 +217,17 @@ namespace Reign
             SDL_EVENT_PEN_BUTTON_UP,              /**< Pressure-sensitive pen button released */
             SDL_EVENT_PEN_MOTION,                 /**< Pressure-sensitive pen is moving on the tablet */
             SDL_EVENT_PEN_AXIS,                   /**< Pressure-sensitive pen angle/pressure/etc changed */
-            SDL_EVENT_PEN_FIRST = SDL_EVENT_PEN_PROXIMITY_IN,
-            SDL_EVENT_PEN_LAST = SDL_EVENT_PEN_AXIS,
 
             /* Camera hotplug events */
             SDL_EVENT_CAMERA_DEVICE_ADDED = 0x1400,  /**< A new camera device is available */
             SDL_EVENT_CAMERA_DEVICE_REMOVED,         /**< A camera device has been removed. */
             SDL_EVENT_CAMERA_DEVICE_APPROVED,        /**< A camera device has been approved for use by the user. */
             SDL_EVENT_CAMERA_DEVICE_DENIED,          /**< A camera device has been denied for use by the user. */
-            SDL_EVENT_CAMERA_DEVICE_FIRST = SDL_EVENT_CAMERA_DEVICE_ADDED,
-            SDL_EVENT_CAMERA_DEVICE_LAST = SDL_EVENT_CAMERA_DEVICE_DENIED,
-
-            /* Notification events */
-            SDL_EVENT_NOTIFICATION_ACTION_INVOKED = 0x1500, /**< A user response to a system notification was received. */
-            SDL_EVENT_NOTIFICATION_FIRST = SDL_EVENT_NOTIFICATION_ACTION_INVOKED,
-            SDL_EVENT_NOTIFICATION_LAST = SDL_EVENT_NOTIFICATION_ACTION_INVOKED,
 
             /* Render events */
             SDL_EVENT_RENDER_TARGETS_RESET = 0x2000, /**< The render targets have been reset and their contents need to be updated */
             SDL_EVENT_RENDER_DEVICE_RESET, /**< The device has been reset and all textures need to be recreated */
             SDL_EVENT_RENDER_DEVICE_LOST, /**< The device has been lost and can't be recovered. */
-            SDL_EVENT_RENDER_FIRST = SDL_EVENT_RENDER_TARGETS_RESET,
-            SDL_EVENT_RENDER_LAST = SDL_EVENT_RENDER_DEVICE_LOST,
 
             /* Reserved events for private platforms */
             SDL_EVENT_PRIVATE0 = 0x4000,
@@ -296,7 +275,16 @@ namespace Reign
             public Sint32 data2;       /**< event dependent data */
         }
 
-        public enum SDL_Scancode : int
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_KeyboardDeviceEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_KEYBOARD_ADDED or SDL_EVENT_KEYBOARD_REMOVED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_KeyboardID which;   /**< The keyboard instance id */
+        }
+
+        public enum SDL_Scancode
         {
             SDL_SCANCODE_UNKNOWN = 0,
 
@@ -372,7 +360,7 @@ namespace Reign
             SDL_SCANCODE_NONUSHASH = 50, /**< ISO USB keyboards actually use this code
                                           *   instead of 49 for the same key, but all
                                           *   OSes I've seen treat the two codes
-                                          *   identically. So, as an implementer, unless
+                                          *   identically. So, as an implementor, unless
                                           *   your keyboard generates both of those
                                           *   codes and your OS treats them differently,
                                           *   you should generate SDL_SCANCODE_BACKSLASH
@@ -686,8 +674,8 @@ namespace Reign
             public SDL_Keycode key;        /**< SDL virtual key code */
             public SDL_Keymod mod;         /**< current key modifiers */
             public Uint16 raw;             /**< The platform dependent scancode for this event */
-            public int down;              /**< true if the key is pressed */
-            public int repeat;            /**< true if this is a key repeat */
+            public BOOL down;              /**< true if the key is pressed */
+            public BOOL repeat;            /**< true if this is a key repeat */
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -703,14 +691,19 @@ namespace Reign
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct SDL_TextEditingExtEvent
+        public struct SDL_TextEditingCandidatesEvent
         {
-            public Uint32 type;                                /**< SDL_TEXTEDITING_EXT */
-            public Uint32 timestamp;                           /**< In milliseconds, populated using SDL_GetTicks() */
-            public Uint32 windowID;                            /**< The window with keyboard focus, if any */
-            public byte* text;                                 /**< The editing text, which should be freed with SDL_free(), and will not be NULL */
-            public Sint32 start;                               /**< The start cursor of selected editing text */
-            public Sint32 length;                              /**< The length of selected editing text */
+            public SDL_EventType type;         /**< SDL_EVENT_TEXT_EDITING_CANDIDATES */
+            public Uint32 reserved;
+            public Uint64 timestamp;           /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID;      /**< The window with keyboard focus, if any */
+            public byte** candidates;    /**< The list of candidates, or NULL if there are no candidates available */
+            public Sint32 num_candidates;      /**< The number of strings in `candidates` */
+            public Sint32 selected_candidate;  /**< The index of the selected candidate, or -1 if no candidate is selected */
+            public bool horizontal;          /**< true if the list is horizontal, false if it's vertical */
+            public Uint8 padding1;
+            public Uint8 padding2;
+            public Uint8 padding3;
         }
 
         [StructLayout(LayoutKind.Sequential)]
@@ -721,6 +714,430 @@ namespace Reign
             public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
             public SDL_WindowID windowID; /**< The window with keyboard focus, if any */
             public byte* text;   /**< The input text, UTF-8 encoded */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_MouseDeviceEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_MOUSE_ADDED or SDL_EVENT_MOUSE_REMOVED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_MouseID which;  /**< The mouse instance id */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_MouseMotionEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_MOUSE_MOTION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window with mouse focus, if any */
+            public SDL_MouseID which;  /**< The mouse instance id in relative mode, SDL_TOUCH_MOUSEID for touch events, SDL_PEN_MOUSEID for pen events, or 0 */
+            public SDL_MouseButtonFlags state;       /**< The current button state */
+            public float x;            /**< X coordinate, relative to window */
+            public float y;            /**< Y coordinate, relative to window */
+            public float xrel;         /**< The relative motion in the X direction */
+            public float yrel;         /**< The relative motion in the Y direction */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_MouseButtonEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_MOUSE_BUTTON_DOWN or SDL_EVENT_MOUSE_BUTTON_UP */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window with mouse focus, if any */
+            public SDL_MouseID which;  /**< The mouse instance id in relative mode, SDL_TOUCH_MOUSEID for touch events, or 0 */
+            public Uint8 button;       /**< The mouse button index */
+            public BOOL down;          /**< true if the button is pressed */
+            public Uint8 clicks;       /**< 1 for single-click, 2 for double-click, etc. */
+            public Uint8 padding;
+            public float x;            /**< X coordinate, relative to window */
+            public float y;            /**< Y coordinate, relative to window */
+        }
+
+        public enum SDL_MouseWheelDirection
+        {
+            SDL_MOUSEWHEEL_NORMAL,    /**< The scroll direction is normal */
+            SDL_MOUSEWHEEL_FLIPPED    /**< The scroll direction is flipped / natural */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_MouseWheelEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_MOUSE_WHEEL */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window with mouse focus, if any */
+            public SDL_MouseID which;  /**< The mouse instance id in relative mode or 0 */
+            public float x;            /**< The amount scrolled horizontally, positive to the right and negative to the left */
+            public float y;            /**< The amount scrolled vertically, positive away from the user and negative toward the user */
+            public SDL_MouseWheelDirection direction; /**< Set to one of the SDL_MOUSEWHEEL_* defines. When FLIPPED the values in X and Y will be opposite. Multiply by -1 to change them back */
+            public float mouse_x;      /**< X coordinate, relative to window */
+            public float mouse_y;      /**< Y coordinate, relative to window */
+            public Sint32 integer_x;   /**< The amount scrolled horizontally, accumulated to whole scroll "ticks" (added in 3.2.12) */
+            public Sint32 integer_y;   /**< The amount scrolled vertically, accumulated to whole scroll "ticks" (added in 3.2.12) */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_JoyDeviceEvent
+        {
+            SDL_EventType type; /**< SDL_EVENT_JOYSTICK_ADDED or SDL_EVENT_JOYSTICK_REMOVED or SDL_EVENT_JOYSTICK_UPDATE_COMPLETE */
+            Uint32 reserved;
+            Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            SDL_JoystickID which;       /**< The joystick instance id */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_JoyAxisEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_JOYSTICK_AXIS_MOTION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Uint8 axis;         /**< The joystick axis index */
+            public Uint8 padding1;
+            public Uint8 padding2;
+            public Uint8 padding3;
+            public Sint16 value;       /**< The axis value (range: -32768 to 32767) */
+            public Uint16 padding4;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_JoyBallEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_JOYSTICK_BALL_MOTION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Uint8 ball;         /**< The joystick trackball index */
+            public Uint8 padding1;
+            public Uint8 padding2;
+            public Uint8 padding3;
+            public Sint16 xrel;        /**< The relative motion in the X direction */
+            public Sint16 yrel;        /**< The relative motion in the Y direction */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_JoyHatEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_JOYSTICK_HAT_MOTION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Uint8 hat;          /**< The joystick hat index */
+            public Uint8 value;        /**< The hat position value.
+                                 *   \sa SDL_HAT_LEFTUP SDL_HAT_UP SDL_HAT_RIGHTUP
+                                 *   \sa SDL_HAT_LEFT SDL_HAT_CENTERED SDL_HAT_RIGHT
+                                 *   \sa SDL_HAT_LEFTDOWN SDL_HAT_DOWN SDL_HAT_RIGHTDOWN
+                                 *
+                                 *   Note that zero means the POV is centered.
+                                 */
+            public Uint8 padding1;
+            public Uint8 padding2;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_JoyButtonEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_JOYSTICK_BUTTON_DOWN or SDL_EVENT_JOYSTICK_BUTTON_UP */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Uint8 button;       /**< The joystick button index */
+            public BOOL down;      /**< true if the button is pressed */
+            public Uint8 padding1;
+            public Uint8 padding2;
+        }
+
+        public enum SDL_PowerState
+        {
+            SDL_POWERSTATE_ERROR = -1,   /**< error determining power status */
+            SDL_POWERSTATE_UNKNOWN,      /**< cannot determine power status */
+            SDL_POWERSTATE_ON_BATTERY,   /**< Not plugged in, running on the battery */
+            SDL_POWERSTATE_NO_BATTERY,   /**< Plugged in, no battery available */
+            SDL_POWERSTATE_CHARGING,     /**< Plugged in, charging battery */
+            SDL_POWERSTATE_CHARGED       /**< Plugged in, battery charged */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_JoyBatteryEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_JOYSTICK_BATTERY_UPDATED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public SDL_PowerState state; /**< The joystick battery state */
+            public int percent;          /**< The joystick battery percent charge remaining */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_GamepadDeviceEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_GAMEPAD_ADDED, SDL_EVENT_GAMEPAD_REMOVED, or SDL_EVENT_GAMEPAD_REMAPPED, SDL_EVENT_GAMEPAD_UPDATE_COMPLETE or SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which;       /**< The joystick instance id */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_GamepadAxisEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_GAMEPAD_AXIS_MOTION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Uint8 axis;         /**< The gamepad axis (SDL_GamepadAxis) */
+            public Uint8 padding1;
+            public Uint8 padding2;
+            public Uint8 padding3;
+            public Sint16 value;       /**< The axis value (range: -32768 to 32767) */
+            public Uint16 padding4;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_GamepadButtonEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_GAMEPAD_BUTTON_DOWN or SDL_EVENT_GAMEPAD_BUTTON_UP */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Uint8 button;       /**< The gamepad button (SDL_GamepadButton) */
+            public BOOL down;      /**< true if the button is pressed */
+            public Uint8 padding1;
+            public Uint8 padding2;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_GamepadTouchpadEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN or SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION or SDL_EVENT_GAMEPAD_TOUCHPAD_UP */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Sint32 touchpad;    /**< The index of the touchpad */
+            public Sint32 finger;      /**< The index of the finger on the touchpad */
+            public float x;            /**< Normalized in the range 0...1 with 0 being on the left */
+            public float y;            /**< Normalized in the range 0...1 with 0 being at the top */
+            public float pressure;     /**< Normalized in the range 0...1 */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_GamepadSensorEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_GAMEPAD_SENSOR_UPDATE */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_JoystickID which; /**< The joystick instance id */
+            public Sint32 sensor;      /**< The type of the sensor, one of the values of SDL_SensorType */
+            public fixed float data[3];      /**< Up to 3 values from the sensor, as defined in SDL_sensor.h */
+            public Uint64 sensor_timestamp; /**< The timestamp of the sensor reading in nanoseconds, not necessarily synchronized with the system clock */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_AudioDeviceEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_AUDIO_DEVICE_ADDED, or SDL_EVENT_AUDIO_DEVICE_REMOVED, or SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_AudioDeviceID which;       /**< SDL_AudioDeviceID for the device being added or removed or changing */
+            public BOOL recording; /**< false if a playback device, true if a recording device. */
+            public Uint8 padding1;
+            public Uint8 padding2;
+            public Uint8 padding3;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_CameraDeviceEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_CAMERA_DEVICE_ADDED, SDL_EVENT_CAMERA_DEVICE_REMOVED, SDL_EVENT_CAMERA_DEVICE_APPROVED, SDL_EVENT_CAMERA_DEVICE_DENIED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_CameraID which;       /**< SDL_CameraID for the device being added or removed or changing */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_SensorEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_SENSOR_UPDATE */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_SensorID which; /**< The instance ID of the sensor */
+            public fixed float data[6];      /**< Up to 6 values from the sensor - additional values can be queried using SDL_GetSensorData() */
+            public Uint64 sensor_timestamp; /**< The timestamp of the sensor reading in nanoseconds, not necessarily synchronized with the system clock */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_QuitEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_QUIT */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_UserEvent
+        {
+            public Uint32 type;        /**< SDL_EVENT_USER through SDL_EVENT_LAST, Uint32 because these are not in the SDL_EventType enumeration */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The associated window if any */
+            public Sint32 code;        /**< User defined event code */
+            public void *data1;        /**< User defined data pointer */
+            public void *data2;        /**< User defined data pointer */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_TouchFingerEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_FINGER_DOWN, SDL_EVENT_FINGER_UP, SDL_EVENT_FINGER_MOTION, or SDL_EVENT_FINGER_CANCELED */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_TouchID touchID; /**< The touch device id */
+            public SDL_FingerID fingerID;
+            public float x;            /**< Normalized in the range 0...1 */
+            public float y;            /**< Normalized in the range 0...1 */
+            public float dx;           /**< Normalized in the range -1...1 */
+            public float dy;           /**< Normalized in the range -1...1 */
+            public float pressure;     /**< Normalized in the range 0...1 */
+            public SDL_WindowID windowID; /**< The window underneath the finger, if any */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_PinchFingerEvent
+        {
+            public SDL_EventType type; /**< ::SDL_EVENT_PINCH_BEGIN or ::SDL_EVENT_PINCH_UPDATE or ::SDL_EVENT_PINCH_END */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public float scale;        /**< The scale change since the last SDL_EVENT_PINCH_UPDATE. Scale < 1 is "zoom out". Scale > 1 is "zoom in". */
+            public SDL_WindowID windowID; /**< The window underneath the finger, if any */
+        }
+
+        public enum SDL_PenDeviceType
+        {
+            SDL_PEN_DEVICE_TYPE_INVALID = -1, /**< Not a valid pen device. */
+            SDL_PEN_DEVICE_TYPE_UNKNOWN,      /**< Don't know specifics of this pen. */
+            SDL_PEN_DEVICE_TYPE_DIRECT,       /**< Pen touches display. */
+            SDL_PEN_DEVICE_TYPE_INDIRECT      /**< Pen touches something that isn't the display. */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_PenProximityEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_PEN_PROXIMITY_IN or SDL_EVENT_PEN_PROXIMITY_OUT */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window with pen focus, if any */
+            public SDL_PenID which;        /**< The pen instance id */
+            public SDL_PenInputFlags pen_state;   /**< Complete pen input state at time of event (added in 3.4.16). */
+            public SDL_PenDeviceType device_type; /**< the device type of the pen, if known (added in 3.4.18). */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_PenTouchEvent
+        {
+            public SDL_EventType type;     /**< SDL_EVENT_PEN_DOWN or SDL_EVENT_PEN_UP */
+            public Uint32 reserved;
+            public Uint64 timestamp;       /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID;  /**< The window with pen focus, if any */
+            public SDL_PenID which;        /**< The pen instance id */
+            public SDL_PenInputFlags pen_state;   /**< Complete pen input state at time of event */
+            public float x;                /**< X coordinate, relative to window */
+            public float y;                /**< Y coordinate, relative to window */
+            public BOOL eraser;        /**< true if eraser end is used (not all pens support this). */
+            public BOOL down;          /**< true if the pen is touching or false if the pen is lifted off */
+            public SDL_PenDeviceType device_type; /**< the device type of the pen, if known (added in 3.4.18). */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_PenMotionEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_PEN_MOTION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window with pen focus, if any */
+            public SDL_PenID which;        /**< The pen instance id */
+            public SDL_PenInputFlags pen_state;   /**< Complete pen input state at time of event */
+            public float x;                /**< X coordinate, relative to window */
+            public float y;                /**< Y coordinate, relative to window */
+            public SDL_PenDeviceType device_type; /**< the device type of the pen, if known (added in 3.4.18). */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_PenButtonEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_PEN_BUTTON_DOWN or SDL_EVENT_PEN_BUTTON_UP */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window with mouse focus, if any */
+            public SDL_PenID which;        /**< The pen instance id */
+            public SDL_PenInputFlags pen_state;   /**< Complete pen input state at time of event */
+            public float x;                /**< X coordinate, relative to window */
+            public float y;                /**< Y coordinate, relative to window */
+            public Uint8 button;       /**< The pen button index (first button is 1). */
+            public BOOL down;      /**< true if the button is pressed */
+            public SDL_PenDeviceType device_type; /**< the device type of the pen, if known (added in 3.4.18). */
+        }
+
+        public enum SDL_PenAxis
+        {
+            SDL_PEN_AXIS_PRESSURE,  /**< Pen pressure.  Unidirectional: 0 to 1.0 */
+            SDL_PEN_AXIS_XTILT,     /**< Pen horizontal tilt angle.  Bidirectional: -90.0 to 90.0 (left-to-right). */
+            SDL_PEN_AXIS_YTILT,     /**< Pen vertical tilt angle.  Bidirectional: -90.0 to 90.0 (top-to-down). */
+            SDL_PEN_AXIS_DISTANCE,  /**< Pen distance to drawing surface.  Unidirectional: 0.0 to 1.0 */
+            SDL_PEN_AXIS_ROTATION,  /**< Pen barrel rotation.  Bidirectional: -180 to 179.9 (clockwise, 0 is facing up, -180.0 is facing down). */
+            SDL_PEN_AXIS_SLIDER,    /**< Pen finger wheel or slider (e.g., Airbrush Pen).  Unidirectional: 0 to 1.0 */
+            SDL_PEN_AXIS_TANGENTIAL_PRESSURE,    /**< Pressure from squeezing the pen ("barrel pressure"). */
+            SDL_PEN_AXIS_COUNT       /**< Total known pen axis types in this version of SDL. This number may grow in future releases! */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_PenAxisEvent
+        {
+            public SDL_EventType type;     /**< SDL_EVENT_PEN_AXIS */
+            public Uint32 reserved;
+            public Uint64 timestamp;       /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID;  /**< The window with pen focus, if any */
+            public SDL_PenID which;        /**< The pen instance id */
+            public SDL_PenInputFlags pen_state;   /**< Complete pen input state at time of event */
+            public float x;                /**< X coordinate, relative to window */
+            public float y;                /**< Y coordinate, relative to window */
+            public SDL_PenAxis axis;       /**< Axis that has changed */
+            public float value;            /**< New value of axis */
+            public SDL_PenDeviceType device_type; /**< the device type of the pen, if known (added in 3.4.18). */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_RenderEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_RENDER_TARGETS_RESET, SDL_EVENT_RENDER_DEVICE_RESET, SDL_EVENT_RENDER_DEVICE_LOST */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID; /**< The window containing the renderer in question. */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_DropEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_DROP_BEGIN or SDL_EVENT_DROP_FILE or SDL_EVENT_DROP_TEXT or SDL_EVENT_DROP_COMPLETE or SDL_EVENT_DROP_POSITION */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public SDL_WindowID windowID;    /**< The window that was dropped on, if any */
+            public float x;            /**< X coordinate, relative to window (not on begin) */
+            public float y;            /**< Y coordinate, relative to window (not on begin) */
+            public byte *source; /**< The source app that sent this drop event, or NULL if that isn't available */
+            public byte *data;   /**< The text for SDL_EVENT_DROP_TEXT and the file name for SDL_EVENT_DROP_FILE, NULL for other events */
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct SDL_ClipboardEvent
+        {
+            public SDL_EventType type; /**< SDL_EVENT_CLIPBOARD_UPDATE */
+            public Uint32 reserved;
+            public Uint64 timestamp;   /**< In nanoseconds, populated using SDL_GetTicksNS() */
+            public BOOL owner;         /**< are we owning the clipboard (internal update) */
+            public Sint32 num_mime_types;   /**< number of mime types */
+            public byte **mime_types; /**< current mime types */
         }
 
         [StructLayout(LayoutKind.Explicit)]
@@ -750,7 +1167,6 @@ namespace Reign
             [FieldOffset(0)] public SDL_GamepadButtonEvent gbutton;         /**< Gamepad button event data */
             [FieldOffset(0)] public SDL_GamepadTouchpadEvent gtouchpad;     /**< Gamepad touchpad event data */
             [FieldOffset(0)] public SDL_GamepadSensorEvent gsensor;         /**< Gamepad sensor event data */
-            [FieldOffset(0)] public SDL_GamepadCapSenseEvent gcapsense;     /**< Gamepad capsense event data */
             [FieldOffset(0)] public SDL_AudioDeviceEvent adevice;           /**< Audio device event data */
             [FieldOffset(0)] public SDL_CameraDeviceEvent cdevice;          /**< Camera device event data */
             [FieldOffset(0)] public SDL_SensorEvent sensor;                 /**< Sensor event data */
@@ -766,7 +1182,6 @@ namespace Reign
             [FieldOffset(0)] public SDL_RenderEvent render;                 /**< Render event data */
             [FieldOffset(0)] public SDL_DropEvent drop;                     /**< Drag and drop event data */
             [FieldOffset(0)] public SDL_ClipboardEvent clipboard;           /**< Clipboard event data */
-            [FieldOffset(0)] public SDL_NotificationEvent notification;     /**< Notification event data */
 
             /* This is necessary for ABI compatibility between Visual C++ and GCC.
                Visual C++ will respect the push pack pragma and use 52 bytes (size of
