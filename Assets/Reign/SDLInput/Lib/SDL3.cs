@@ -32,7 +32,7 @@ namespace Reign
 {
 	public unsafe static class SDL3
     {
-        private const string lib = "SDL3.dll";
+        private const string lib = "SDL3";
         public const uint SDL_INIT_JOYSTICK = 0x00000200u;
         public const uint SDL_INIT_GAMEPAD = 0x00002000u;
 
