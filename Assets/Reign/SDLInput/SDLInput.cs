@@ -34,6 +34,8 @@ namespace Reign
     [DefaultExecutionOrder(-32000)]
     public unsafe class SDLInput : MonoBehaviour
     {
+        internal static SDLInput instance;
+
         public static List<SDLGamepad> gamepads { get; private set; }
 
         public delegate void DevicesChangedCallbackMethod(SDLGamepad gamepad, bool add);
@@ -44,6 +46,14 @@ namespace Reign
 
 		private void Start()
 		{
+            if (instance)
+            {
+                Destroy(gameObject);
+                return;
+            }
+            instance = this;
+            DontDestroyOnLoad(gameObject);
+
             Debug.Log("SDL3Input: v1.0.1");
             gamepads = new List<SDLGamepad>();
 
@@ -107,6 +117,7 @@ namespace Reign
 
         private void OnDestroy()
         {
+            if (instance != this) return;
             Debug.Log("SDL3Input: shutdown");
             SDL3.SDL_Quit();
         }
