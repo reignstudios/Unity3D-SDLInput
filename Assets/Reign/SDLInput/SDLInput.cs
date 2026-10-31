@@ -44,6 +44,7 @@ namespace Reign
 
 		private void Start()
 		{
+            Debug.Log("SDL3Input: v1.0.0");
             gamepads = new List<SDLGamepad>();
 
             // get version
