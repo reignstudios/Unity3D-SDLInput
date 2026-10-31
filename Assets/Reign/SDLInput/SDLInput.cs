@@ -36,7 +36,7 @@ namespace Reign
     {
         public static List<SDLGamepad> gamepads { get; private set; }
 
-        public delegate void DevicesChangedCallbackMethod();
+        public delegate void DevicesChangedCallbackMethod(SDLGamepad gamepad, bool add);
         public static event DevicesChangedCallbackMethod DevicesChangedCallback;
         
         public bool initAllowingBackgroundInput, loadGamepadMappings = true;
@@ -44,7 +44,7 @@ namespace Reign
 
 		private void Start()
 		{
-            Debug.Log("SDL3Input: v1.0.0");
+            Debug.Log("SDL3Input: v1.0.1");
             gamepads = new List<SDLGamepad>();
 
             // get version
@@ -126,8 +126,9 @@ namespace Reign
                         SDL_Gamepad device = SDL3.SDL_OpenGamepad(id);
                         if (device != IntPtr.Zero)
                         {
-                            gamepads.Add(new SDLGamepad(device));
-                            DevicesChangedCallback?.Invoke();
+                            var gamepad = new SDLGamepad(device);
+                            gamepads.Add(gamepad);
+                            DevicesChangedCallback?.Invoke(gamepad, true);
                         }
                     }
                     break;
@@ -141,7 +142,7 @@ namespace Reign
                         {
                             Debug.Log($"SDLInput: Gamepad disconnected: '{gamepad.name}'");
                             gamepads.Remove(gamepad);
-                            DevicesChangedCallback?.Invoke();
+                            DevicesChangedCallback?.Invoke(gamepad, false);
                         }
                     }
                     break;

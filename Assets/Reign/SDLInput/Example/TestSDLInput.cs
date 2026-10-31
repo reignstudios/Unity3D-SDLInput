@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Reign;
 
-public class TestUInput : MonoBehaviour
+public class TestSDLInput : MonoBehaviour
 {
 	private KeyCode[] keyCodes;
 	private string lable;
@@ -20,7 +20,7 @@ public class TestUInput : MonoBehaviour
 		SDLInput.DevicesChangedCallback -= UInput_DevicesChangedCallback;
 	}
 
-	private void UInput_DevicesChangedCallback()
+	private void UInput_DevicesChangedCallback(SDLGamepad gamepad, bool add)
 	{
 		lable = "Devices Changed";
 	}
